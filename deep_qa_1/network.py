@@ -31,6 +31,7 @@ sys.path.insert(0, os.path.dirname(curdir))
 
 import numpy as np
 import deep_qa_1.data as corpus
+import visual as visual_tool
 
 if sys.version_info[0] < 3:
     reload(sys)
@@ -115,7 +116,7 @@ class NeuralNetwork():
                 self.biases = [ b - (self.lr * b_)/len(mini_batch) for b, b_ in zip(self.biases, nabla_b)]
                 total_step += 1
                 print("Epoch %s, total step %d, cost %f" % (n, total_step, total_cost/len(mini_batch)))
-
+                visual_tool.append_graph_data("%s %s" % (total_step, total_cost/len(mini_batch)))
                 if (total_step % 1000 ) == 0 and test:
                     print("TODO test")
 
@@ -126,6 +127,7 @@ def sigmoid_derivative(x):
     return sigmoid(x) * ( 1.0 - sigmoid(x))
 
 def test_train():
+    visual_tool.init_graph_data()
     nn = NeuralNetwork(epoch = 50)
     nn.run(test = True)
 

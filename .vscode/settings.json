@@ -1,0 +1,15 @@
+{
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "**/.vscode": true,
+        "**/__pycache__": true,
+        "**/*.pyc": true,
+        "**/*.cache": true,
+        "**/*.sublime-*": true
+    },
+    "python.linting.pylintEnabled": false
+}
