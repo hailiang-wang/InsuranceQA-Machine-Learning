@@ -31,7 +31,7 @@ sys.path.insert(0, os.path.dirname(curdir))
 
 import numpy as np
 import deep_qa_1.data as corpus
-import visual as visual_tool
+import visual.loss as visual_loss
 
 if sys.version_info[0] < 3:
     reload(sys)
@@ -107,7 +107,7 @@ class NeuralNetwork():
                 total_cost = 0.0
                 for x, y_ in mini_batch:
                     delta_nabla_b, delta_nabla_w, cost = self.back_propagation( \
-                                np.reshape(x, (self.input_layer_size, 1)), \
+                                np.reshape(x, (self.input_layer_size, 1)) * 0.001, \
                                 np.reshape(y_, (self.output_layer_size, 1)))
                     nabla_b = [ nb+mnb for nb, mnb in zip(nabla_b, delta_nabla_b)]
                     nabla_w = [ nw+mnw for nw, mnw in zip(nabla_w, delta_nabla_w)]
@@ -116,7 +116,7 @@ class NeuralNetwork():
                 self.biases = [ b - (self.lr * b_)/len(mini_batch) for b, b_ in zip(self.biases, nabla_b)]
                 total_step += 1
                 print("Epoch %s, total step %d, cost %f" % (n, total_step, total_cost/len(mini_batch)))
-                visual_tool.append_graph_data("%s %s" % (total_step, total_cost/len(mini_batch)))
+                visual_loss.append_graph_data(total_step, total_cost/len(mini_batch))
                 if (total_step % 1000 ) == 0 and test:
                     print("TODO test")
 
@@ -127,8 +127,8 @@ def sigmoid_derivative(x):
     return sigmoid(x) * ( 1.0 - sigmoid(x))
 
 def test_train():
-    visual_tool.init_graph_data()
-    nn = NeuralNetwork(epoch = 50)
+    visual_loss.init_graph_data()
+    nn = NeuralNetwork(epoch = 50, lr = 0.0001)
     nn.run(test = True)
 
 if __name__ == '__main__':

@@ -131,7 +131,7 @@ def __resolve_input_data(data, batch_size, question_max_length = 20, utterance_m
             assert len(y_) == 2, "desired output."
             result.append([x, y_])
         if len(result) > 0:
-            print('data in batch:%d' % len(mini_batch))
+            # print('data in batch:%d' % len(mini_batch))
             yield result
         else:
             raise StopIteration
