@@ -24,7 +24,7 @@ python3 visual/accuracy.py
 python3 visual/loss.py
 ```
 
-Baseline: hidden_layers = [100, 50], lr = 0.0001.
+Baseline: mini-batch size = 100, hidden_layers = [100, 50], lr = 0.0001.
 
 ![](./deep_qa_1/baseline_acc.png)
 
