@@ -144,11 +144,19 @@ def load_train(batch_size = 100, question_max_length = 20, utterance_max_length 
     '''
     return __resolve_input_data(_train_data, batch_size, question_max_length, utterance_max_length)
 
-def load_test(batch_size = 100, question_max_length = 20, utterance_max_length = 99):
+def load_test(question_max_length = 20, utterance_max_length = 99):
     '''
     load test data
     '''
-    return __resolve_input_data(_test_data, batch_size, question_max_length, utterance_max_length)
+    result = []
+    for o in _test_data:
+        x = pack_question_n_utterance(o['question'], o['utterance'], question_max_length, utterance_max_length)
+        y_ = o['label']
+        assert len(x) == utterance_max_length + question_max_length + 1, "Wrong length afer padding"
+        assert VOCAB_GO_ID in x, "<GO> must be in input x"
+        assert len(y_) == 2, "desired output."
+        result.append((x, y_))
+    return result
 
 def load_valid(batch_size = 100, question_max_length = 20, utterance_max_length = 99):
     '''

@@ -32,6 +32,7 @@ sys.path.insert(0, os.path.dirname(curdir))
 import numpy as np
 import deep_qa_1.data as corpus
 import visual.loss as visual_loss
+import visual.accuracy as visual_acc
 
 if sys.version_info[0] < 3:
     reload(sys)
@@ -42,7 +43,9 @@ class NeuralNetwork():
     def __init__(self, hidden_layers = [100, 50], 
                  question_max_length = 20, 
                  utterance_max_length = 99, 
-                 lr = 0.001, epoch = 10, batch_size = 100):
+                 lr = 0.001, epoch = 10, 
+                 batch_size = 100,
+                 eval_every_N_steps = 500):
         '''
         Neural Network to train question and answering model
         '''
@@ -55,6 +58,8 @@ class NeuralNetwork():
         self.epoch = epoch
         self.lr = lr
         self.batch_size = batch_size
+        self.eval_every_N_steps = eval_every_N_steps
+        self.test_data = corpus.load_test()
 
     def back_propagation(self, x, y_):
         '''
@@ -106,6 +111,7 @@ class NeuralNetwork():
                 nabla_w = [np.zeros(w.shape) for w in self.weights]
                 total_cost = 0.0
                 for x, y_ in mini_batch:
+                    # here scale the input's word ids with 0.001 for x to make sure the Z-vector can pass sigmoid fn
                     delta_nabla_b, delta_nabla_w, cost = self.back_propagation( \
                                 np.reshape(x, (self.input_layer_size, 1)) * 0.001, \
                                 np.reshape(y_, (self.output_layer_size, 1)))
@@ -116,9 +122,36 @@ class NeuralNetwork():
                 self.biases = [ b - (self.lr * b_)/len(mini_batch) for b, b_ in zip(self.biases, nabla_b)]
                 total_step += 1
                 print("Epoch %s, total step %d, cost %f" % (n, total_step, total_cost/len(mini_batch)))
-                visual_loss.append_graph_data(total_step, total_cost/len(mini_batch))
-                if (total_step % 1000 ) == 0 and test:
-                    print("TODO test")
+                visual_loss.plot(total_step, total_cost/len(mini_batch))
+                if (total_step % self.eval_every_N_steps ) == 0 and test:
+                    accuracy = self.evaluate()
+                    print("Epoch %s, total step %d, accuracy %s" % (n, total_step, accuracy))
+                    visual_acc.plot(total_step, accuracy)
+
+    def feedforward(self, x):
+        '''
+        Feedforward network
+        '''
+        activation = x
+        for w, b in zip(self.weights, self.biases):
+            z = np.dot(w, activation) + b
+            activation = sigmoid(z)
+        return activation
+
+    def evaluate(self):
+        '''
+        evaluate model
+        '''
+        # for (x,y) in self.test_data:
+        #     r = self.feedforward(np.reshape(x, (self.input_layer_size, 1)) * 0.001)
+            # print("feedforward", r)
+            # print("argmax", np.argmax(r))
+            # print("y", y)
+            # print("*"*20)
+        result = [(np.argmax(self.feedforward(np.reshape(x, (self.input_layer_size, 1)) * 0.001)), y) for (x, y) in self.test_data]
+        # print(result)
+        print("count", sum(int(y[x] == 1) for (x, y) in result))
+        return "%.4f" % ( sum(int(y[x] == 1) for (x, y) in result)/ len(self.test_data))
 
 def sigmoid(x):
     return 1.0 / (1.0 + np.exp(-x))
@@ -127,8 +160,9 @@ def sigmoid_derivative(x):
     return sigmoid(x) * ( 1.0 - sigmoid(x))
 
 def test_train():
-    visual_loss.init_graph_data()
-    nn = NeuralNetwork(epoch = 50, lr = 0.0001)
+    visual_loss.init()
+    visual_acc.init()
+    nn = NeuralNetwork(epoch = 50, lr = 0.0001, eval_every_N_steps = 200)
     nn.run(test = True)
 
 if __name__ == '__main__':
